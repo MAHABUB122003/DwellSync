@@ -7,6 +7,14 @@ import 'package:dwell_sync/screens/splash_screen.dart';
 import 'package:dwell_sync/screens/auth/login_screen.dart';
 import 'package:dwell_sync/screens/auth/register_landlord_screen.dart';
 import 'package:dwell_sync/screens/auth/register_tenant_screen.dart';
+import 'package:dwell_sync/screens/landlord/landlord_dashboard.dart';
+import 'package:dwell_sync/screens/landlord/landlord_tenants_screen.dart';
+import 'package:dwell_sync/screens/landlord/landlord_bills_screen.dart';
+import 'package:dwell_sync/screens/landlord/landlord_history_screen.dart';
+import 'package:dwell_sync/screens/tenant/tenant_dashboard.dart';
+import 'package:dwell_sync/screens/tenant/tenant_bills_screen.dart';
+import 'package:dwell_sync/screens/messaging_screen.dart';
+import 'package:dwell_sync/screens/profile_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -38,6 +46,17 @@ class MyApp extends StatelessWidget {
               '/register_landlord': (context) =>
                   const RegisterLandlordScreen(),
               '/register_tenant': (context) => const RegisterTenantScreen(),
+              '/landlord_dashboard': (context) => const LandlordDashboard(),
+              '/landlord_tenants': (context) =>
+                  const LandlordTenantsScreen(),
+              '/landlord_bills': (context) =>
+                  const LandlordBillsScreen(),
+              '/landlord_history': (context) =>
+                  const LandlordHistoryScreen(),
+              '/tenant_dashboard': (context) => const TenantDashboard(),
+              '/tenant_bills': (context) => const TenantBillsScreen(),
+              '/messaging': (context) => const MessagingScreen(),
+              '/profile': (context) => const ProfileScreen(),
             },
           );
         },

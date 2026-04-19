@@ -15,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _rememberMe = false;
   bool _isLoading = false;
+  bool _isLoginSuccessful = false;
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -27,13 +28,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void _handleLogin() {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      // TODO: Implement actual login logic
+      // Simulate login API call
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful!')),
-          );
+          setState(() {
+            _isLoading = false;
+            _isLoginSuccessful = true;
+          });
         }
       });
     }
@@ -44,6 +45,12 @@ class _LoginScreenState extends State<LoginScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
 
+    // Show success screen if login was successful
+    if (_isLoginSuccessful) {
+      return _buildSuccessScreen(context, isDark, size);
+    }
+
+    // Show login form
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBg : AppColors.white,
       body: SafeArea(
@@ -256,6 +263,118 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessScreen(BuildContext context, bool isDark, Size size) {
+    return Scaffold(
+      backgroundColor: isDark ? AppColors.darkBg : AppColors.white,
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Success Animation Container
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.check_circle,
+                    size: 80,
+                    color: AppColors.success,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              // Success Message
+              Text(
+                'Login Successful!',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.success,
+                    ),
+              ),
+              const SizedBox(height: 16),
+
+              // Email Display
+              Text(
+                _emailController.text,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.grey,
+                    ),
+              ),
+              const SizedBox(height: 32),
+
+              // Info Message
+              Container(
+                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.3),
+                  ),
+                ),
+                child: Text(
+                  'You are now logged in. Normally, you would be redirected to the dashboard, but we\'re showing you this success page as requested.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.primary,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Action Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    CustomButton(
+                      text: 'Continue to Landlord Dashboard',
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/landlord_dashboard',
+                      ),
+                      icon: Icons.arrow_forward,
+                    ),
+                    const SizedBox(height: 12),
+                    CustomButton(
+                      text: 'Continue to Tenant Dashboard',
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/tenant_dashboard',
+                      ),
+                      icon: Icons.arrow_forward,
+                      isOutlined: true,
+                    ),
+                    const SizedBox(height: 12),
+                    CustomButton(
+                      text: 'Back to Login',
+                      onPressed: () => setState(() {
+                        _isLoginSuccessful = false;
+                        _emailController.clear();
+                        _passwordController.clear();
+                      }),
+                      isOutlined: true,
+                      icon: Icons.arrow_back,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

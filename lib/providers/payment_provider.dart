@@ -1,90 +1,86 @@
 import 'package:flutter/material.dart';
-import 'package:dwell_sync/models/bill.dart';
+import 'auth_provider.dart';
 
 class PaymentProvider extends ChangeNotifier {
-  final List<Bill> _bills = [];
-  bool _isLoading = false;
+  List<Map<String, dynamic>> _bills = [];
+  List<Map<String, dynamic>> _payments = [];
+  List<Map<String, dynamic>> _tenants = [];
 
-  List<Bill> get bills => _bills;
-  bool get isLoading => _isLoading;
+  List<Map<String, dynamic>> get bills => _bills;
+  List<Map<String, dynamic>> get payments => _payments;
+  List<Map<String, dynamic>> get tenants => _tenants;
 
-  // Get all bills
-  List<Bill> getAllBills() {
-    return _bills;
-  }
-
-  // Get bills for tenant
-  List<Bill> getBillsForTenant(String tenantId) {
-    return _bills.where((bill) => bill.tenantId == tenantId).toList();
-  }
-
-  // Get bills for landlord
-  List<Bill> getBillsForLandlord(String landlordId) {
-    return _bills.where((bill) => bill.landlordId == landlordId).toList();
-  }
-
-  // Add bill
-  void addBill(Bill bill) {
-    _bills.add(bill);
-    notifyListeners();
-  }
-
-  // Update bill
-  void updateBill(String billId, Bill updatedBill) {
-    final index = _bills.indexWhere((bill) => bill.id == billId);
-    if (index != -1) {
-      _bills[index] = updatedBill;
+  void addTenantFromUser(User user) {
+    if (user.role == 'tenant') {
+      _tenants.add({
+        'id': user.id,
+        'name': user.name,
+        'email': user.email,
+        'phone': user.phone,
+        'landlordId': user.landlordId,
+      });
       notifyListeners();
     }
   }
 
-  // Delete bill
-  void deleteBill(String billId) {
-    _bills.removeWhere((bill) => bill.id == billId);
-    notifyListeners();
+  double getTotalCollectedForLandlord(String landlordId) {
+    return _payments
+        .where((p) => _getLandlordIdForTenant(p['tenantId']) == landlordId)
+        .fold(0.0, (sum, p) => sum + (p['amount'] as double));
   }
 
-  // Mark bill as paid
-  void markAsPaid(String billId) {
-    final index = _bills.indexWhere((bill) => bill.id == billId);
-    if (index != -1) {
-      _bills[index] = _bills[index].copyWith(status: 'paid');
-      notifyListeners();
-    }
+  int getActiveTenantsCountForLandlord(String landlordId) {
+    return _tenants.where((t) => t['landlordId'] == landlordId).length;
   }
 
-  // Mark bill as unpaid
-  void markAsUnpaid(String billId) {
-    final index = _bills.indexWhere((bill) => bill.id == billId);
-    if (index != -1) {
-      _bills[index] = _bills[index].copyWith(status: 'unpaid');
-      notifyListeners();
-    }
-  }
-
-  // Get total bills amount
-  double getTotalAmount() {
-    return _bills.fold(0, (sum, bill) => sum + bill.amount);
-  }
-
-  // Get total paid amount
-  double getTotalPaidAmount() {
-    return _bills
-        .where((bill) => bill.status == 'paid')
-        .fold(0, (sum, bill) => sum + bill.amount);
-  }
-
-  // Get total unpaid amount
-  double getTotalUnpaidAmount() {
-    return _bills
-        .where((bill) => bill.status == 'unpaid' || bill.status == 'overdue')
-        .fold(0, (sum, bill) => sum + bill.amount);
-  }
-
-  // Get pending bills count
-  int getPendingBillsCount() {
-    return _bills
-        .where((bill) => bill.status == 'unpaid' || bill.status == 'overdue')
+  int getTotalPaidBillsCountForLandlord(String landlordId) {
+    return _payments
+        .where((p) => _getLandlordIdForTenant(p['tenantId']) == landlordId)
         .length;
+  }
+
+  List<Map<String, dynamic>> getPendingBillsForLandlord(String landlordId) {
+    final tenantIds = _tenants
+        .where((t) => t['landlordId'] == landlordId)
+        .map((t) => t['id'] as String)
+        .toList();
+    
+    return _bills
+        .where((b) => tenantIds.contains(b['tenantId']) && !b['isPaid'])
+        .toList();
+  }
+
+  int getTotalPaidBillsCount() {
+    return _payments.length;
+  }
+
+  List<Map<String, dynamic>> getRecentPaidBillsForLandlord(String landlordId) {
+    final tenantIds = _tenants
+        .where((t) => t['landlordId'] == landlordId)
+        .map((t) => t['id'] as String)
+        .toList();
+    
+    return _payments
+        .where((p) => tenantIds.contains(p['tenantId']))
+        .map((p) => {
+          ...p,
+          'tenantName': _getTenantName(p['tenantId']),
+        })
+        .toList();
+  }
+
+  String _getTenantName(String tenantId) {
+    final tenant = _tenants.firstWhere((t) => t['id'] == tenantId, orElse: () => {});
+    return tenant['name'] ?? 'Unknown Tenant';
+  }
+
+  String _getLandlordIdForTenant(String tenantId) {
+    final tenant = _tenants.firstWhere((t) => t['id'] == tenantId, orElse: () => {});
+    return tenant['landlordId'] ?? '';
+  }
+
+  Future<void> sendReminder(String tenantId, String message) async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    debugPrint('Reminder sent to $tenantId: $message');
   }
 }

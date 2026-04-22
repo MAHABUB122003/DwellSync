@@ -159,14 +159,21 @@ class AuthProvider extends ChangeNotifier {
     throw Exception('User not found');
   }
 
-  String _generateInviteCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    String code = '';
-    for (int i = 0; i < 8; i++) {
-      code += chars[DateTime.now().millisecondsSinceEpoch % chars.length];
-    }
-    return code;
+ String _generateInviteCode() {
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz'; // Removed I, O to avoid confusion
+  const numbers = '23456789'; // Removed 0,1 to avoid confusion with O,I
+  const allChars = letters + numbers;
+  
+  String code = '';
+  final random = DateTime.now().microsecondsSinceEpoch;
+  
+  for (int i = 0; i < 6; i++) { // 6 characters like Google Classroom
+    final randomIndex = (random + i * 7919) % allChars.length;
+    code += allChars[randomIndex];
   }
+  
+  return code.toLowerCase(); // Google Classroom uses lowercase
+}
 
   void logout() {
     _currentUser = null;

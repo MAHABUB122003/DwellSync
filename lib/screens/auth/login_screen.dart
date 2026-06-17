@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
-import 'landlord_dashboard.dart';
+import 'package:dwell_sync/providers/auth_provider.dart';
+import 'package:dwell_sync/widgets/custom_button.dart';
+import 'package:dwell_sync/widgets/custom_text_field.dart';
+import 'package:dwell_sync/screens/tenant/tenant_dashboard.dart';
+import 'package:dwell_sync/screens/landlord/landlord_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -34,11 +35,24 @@ class _LoginScreenState extends State<LoginScreen> {
           password: _passwordController.text.trim(),
         );
 
-        if (authProvider.currentUser != null && mounted) {
-          if (authProvider.currentUser!.role == 'landlord') {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const LandlordDashboard()),
+        if (authProvider.currentUser != null) {
+          if (mounted) {
+            if (authProvider.currentUser!.role == 'tenant') {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const TenantDashboard()),
+              );
+            } else {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const LandlordDashboard()),
+              );
+            }
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Login failed: User not found')),
             );
           }
         }
@@ -64,9 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
                 elevation: 6,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Form(
@@ -78,25 +90,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         Center(
                           child: Column(
                             children: const [
-                              Icon(
-                                Icons.home_work,
-                                size: 64,
-                                color: Color(0xFF0066CC),
-                              ),
+                              Icon(Icons.home_work, size: 64, color: Color(0xFF155E63)),
                               SizedBox(height: 12),
                               Text(
                                 'DwellSync',
-                                style: TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0066CC),
-                                ),
+                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF155E63)),
                               ),
                               SizedBox(height: 6),
-                              Text(
-                                'Sign in to your account',
-                                style: TextStyle(color: Colors.grey),
-                              ),
+                              Text('Sign in to your account', style: TextStyle(color: Colors.grey)),
                             ],
                           ),
                         ),
@@ -108,12 +109,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icons.email,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Please enter a valid email';
-                            }
+                            if (value == null || value.isEmpty) return 'Please enter your email';
+                            if (!value.contains('@')) return 'Please enter a valid email';
                             return null;
                           },
                         ),
@@ -125,12 +122,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: Icons.lock,
                           obscureText: !_isPasswordVisible,
                           validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
+                            if (value == null || value.isEmpty) return 'Please enter your password';
+                            if (value.length < 6) return 'Password must be at least 6 characters';
                             return null;
                           },
                         ),
@@ -142,15 +135,13 @@ class _LoginScreenState extends State<LoginScreen> {
                               children: [
                                 Checkbox(
                                   value: _isPasswordVisible,
-                                  onChanged: (value) => setState(
-                                    () => _isPasswordVisible = value ?? false,
-                                  ),
+                                  onChanged: (value) => setState(() => _isPasswordVisible = value ?? false),
                                 ),
                                 const Text('Show Password'),
                               ],
                             ),
                             TextButton(
-                              onPressed: () {},
+                              onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
                               child: const Text('Forgot password?'),
                             ),
                           ],
@@ -170,18 +161,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                '/register/tenant',
-                              ),
+                              onPressed: () => Navigator.pushNamed(context, '/register/tenant'),
                               child: const Text('Register as Tenant'),
                             ),
                             const SizedBox(width: 12),
                             TextButton(
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                '/register/landlord',
-                              ),
+                              onPressed: () => Navigator.pushNamed(context, '/register/landlord'),
                               child: const Text('Register as Landlord'),
                             ),
                           ],
@@ -198,3 +183,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

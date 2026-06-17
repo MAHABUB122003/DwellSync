@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/payment_provider.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
+import 'package:dwell_sync/providers/auth_provider.dart';
+import 'package:dwell_sync/providers/payment_provider.dart';
+import 'package:dwell_sync/screens/tenant/tenant_dashboard.dart';
+import 'package:dwell_sync/widgets/custom_button.dart';
+import 'package:dwell_sync/widgets/custom_text_field.dart';
 
 class RegisterTenantScreen extends StatefulWidget {
   const RegisterTenantScreen({super.key});
@@ -35,6 +36,7 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final payment = Provider.of<PaymentProvider>(context, listen: false);
     try {
+      // First, find the landlord with this invite code
       final inviteCode = _codeController.text.trim();
       final landlord = auth.allUsers.firstWhere(
         (u) => u.inviteCode == inviteCode && u.role == 'landlord',
@@ -50,14 +52,20 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
         landlordId: landlord.id,
       );
 
+      // add tenant record for landlord UI
       payment.addTenantFromUser(user);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Registration successful! Please login.')),
+      // auto-login with the password we just set
+      await auth.login(
+        email: user.email,
+        password: _passwordController.text.trim(),
       );
 
       if (mounted) {
-        Navigator.pop(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const TenantDashboard()),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -80,72 +88,28 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Card(
               elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      const Text(
-                        'Tenant Registration',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      const Text('Tenant Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 14),
-                      CustomTextField(
-                        controller: _nameController,
-                        label: 'Full Name',
-                        hintText: 'Enter full name',
-                        prefixIcon: Icons.person,
-                      ),
+                      CustomTextField(controller: _nameController, label: 'Full Name', hintText: 'Enter full name', prefixIcon: Icons.person),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        hintText: 'Enter email',
-                        prefixIcon: Icons.email,
-                      ),
+                      CustomTextField(controller: _emailController, label: 'Email', hintText: 'Enter email', prefixIcon: Icons.email),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _phoneController,
-                        label: 'Phone',
-                        hintText: 'Enter phone number',
-                        prefixIcon: Icons.phone,
-                      ),
+                      CustomTextField(controller: _phoneController, label: 'Phone', hintText: 'Enter phone number', prefixIcon: Icons.phone),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _passwordController,
-                        label: 'Password',
-                        hintText: 'Create a password',
-                        prefixIcon: Icons.lock,
-                        obscureText: true,
-                      ),
+                      CustomTextField(controller: _passwordController, label: 'Password', hintText: 'Create a password', prefixIcon: Icons.lock, obscureText: true),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _codeController,
-                        label: 'Invite Code',
-                        hintText: 'Enter invite code',
-                        prefixIcon: Icons.vpn_key,
-                      ),
+                      CustomTextField(controller: _codeController, label: 'Invite Code (optional)', hintText: 'Enter invite code', prefixIcon: Icons.vpn_key),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          text: 'Register',
-                          onPressed: _register,
-                          color: Colors.green,
-                        ),
-                      ),
+                      SizedBox(width: double.infinity, child: CustomButton(text: 'Register', onPressed: _register, color: Colors.green)),
                       const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Back to Login'),
-                      ),
+                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Back to Login')),
                     ],
                   ),
                 ),
@@ -157,3 +121,5 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
     );
   }
 }
+
+

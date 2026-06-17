@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
+import 'package:dwell_sync/providers/auth_provider.dart';
+import 'package:dwell_sync/widgets/custom_button.dart';
+import 'package:dwell_sync/widgets/custom_text_field.dart';
 
 class RegisterLandlordScreen extends StatefulWidget {
   const RegisterLandlordScreen({super.key});
@@ -49,16 +49,9 @@ class _RegisterLandlordScreenState extends State<RegisterLandlordScreen> {
               children: [
                 const Text('Your landlord account has been created.'),
                 const SizedBox(height: 12),
-                const Text(
-                  'Invite Code:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                SelectableText(
-                  user.inviteCode ?? 'N/A',
-                  style: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 14,
-                  ),
+                const Text('Invite Code:', style: TextStyle(fontWeight: FontWeight.bold)),
+                SelectableText(user.inviteCode ?? 'N/A',
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 14),
                 ),
                 const SizedBox(height: 12),
                 const Text('Share this code with your tenants.'),
@@ -98,65 +91,26 @@ class _RegisterLandlordScreenState extends State<RegisterLandlordScreen> {
             constraints: const BoxConstraints(maxWidth: 520),
             child: Card(
               elevation: 6,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      const Text(
-                        'Landlord Registration',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      const Text('Landlord Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                       const SizedBox(height: 14),
-                      CustomTextField(
-                        controller: _nameController,
-                        label: 'Full Name',
-                        hintText: 'Enter full name',
-                        prefixIcon: Icons.person,
-                      ),
+                      CustomTextField(controller: _nameController, label: 'Full Name', hintText: 'Enter full name', prefixIcon: Icons.person),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        hintText: 'Enter email',
-                        prefixIcon: Icons.email,
-                      ),
+                      CustomTextField(controller: _emailController, label: 'Email', hintText: 'Enter email', prefixIcon: Icons.email),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _phoneController,
-                        label: 'Phone',
-                        hintText: 'Enter phone number',
-                        prefixIcon: Icons.phone,
-                      ),
+                      CustomTextField(controller: _phoneController, label: 'Phone', hintText: 'Enter phone number', prefixIcon: Icons.phone),
                       const SizedBox(height: 12),
-                      CustomTextField(
-                        controller: _passwordController,
-                        label: 'Password',
-                        hintText: 'Create a password',
-                        prefixIcon: Icons.lock,
-                        obscureText: true,
-                      ),
+                      CustomTextField(controller: _passwordController, label: 'Password', hintText: 'Create a password', prefixIcon: Icons.lock, obscureText: true),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: CustomButton(
-                          text: 'Register',
-                          onPressed: _register,
-                          color: Colors.green,
-                        ),
-                      ),
+                      SizedBox(width: double.infinity, child: CustomButton(text: 'Register', onPressed: _register, color: Colors.green)),
                       const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Back to Login'),
-                      ),
+                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Back to Login')),
                     ],
                   ),
                 ),
@@ -168,3 +122,5 @@ class _RegisterLandlordScreenState extends State<RegisterLandlordScreen> {
     );
   }
 }
+
+

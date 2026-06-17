@@ -1,9 +1,11 @@
+import 'package:intl/intl.dart';
+
 class AppFormat {
-  static String formatCurrency(double amount) {
-    return '\$${amount.toStringAsFixed(2)}';
+  static String formatDate(DateTime date) {
+    return DateFormat('dd MMM yyyy').format(date);
   }
 
-  static String formatDate(DateTime date) {
-    return '${date.month}/${date.day}/${date.year}';
+  static String formatCurrency(double amount) {
+    return '৳${amount.toStringAsFixed(2)}';
   }
 }

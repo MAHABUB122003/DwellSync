@@ -202,16 +202,15 @@ class PaymentProvider with ChangeNotifier {
     }
   }
 
-  Future<void> makePayment(String billId, String method, String transactionId) async {
+  Future<void> makePayment(String billId, double amount, String method, String transactionId) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final bill = _bills.firstWhere((b) => b.id == billId);
       final result = await ApiService.createPayment(
         billId: billId,
-        amount: bill.totalAmount,
+        amount: amount,
         paymentMethod: method,
         transactionId: transactionId,
       );
@@ -221,7 +220,7 @@ class PaymentProvider with ChangeNotifier {
         await loadPayments();
       } else {
         _errorMessage = result['message'];
-        throw Exception(_errorMessage ?? 'Failed to make payment');
+        throw Exception(_errorMessage ?? result['message'] ?? 'Failed to make payment');
       }
     } catch (e) {
       _errorMessage = e.toString();

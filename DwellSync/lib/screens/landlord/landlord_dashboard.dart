@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dwell_sync/models/user.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
 import 'package:dwell_sync/screens/landlord/create_bill_screen.dart';
+import 'package:dwell_sync/utils/colors.dart';
 import 'package:dwell_sync/utils/format.dart';
 import 'package:dwell_sync/providers/theme_provider.dart';
 import 'package:dwell_sync/screens/landlord/view_tenants_screen.dart';
@@ -32,30 +36,20 @@ class _LandlordDashboardState extends State<LandlordDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('DwellSync - Landlord'),
-        backgroundColor: const Color(0xFF155E63),
-        foregroundColor: Colors.white,
       ),
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
         onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
         },
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle),
-            label: 'Create Bill',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), activeIcon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), activeIcon: Icon(Icons.receipt_long), label: 'Create Bill'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );
@@ -74,6 +68,8 @@ class _LandlordHomeScreen extends StatelessWidget {
     final currentLandlordId = authProvider.currentUser?.id ?? '';
     final totalCollected = paymentProvider.getTotalCollectedForLandlord(currentLandlordId);
     final activeTenants = paymentProvider.getActiveTenantsCountForLandlord(currentLandlordId);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -84,7 +80,7 @@ class _LandlordHomeScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF155E63),
+              color: isDark ? AppColors.darkCard : const Color(0xFF155E63),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -92,18 +88,18 @@ class _LandlordHomeScreen extends StatelessWidget {
               children: [
                 Text(
                   'Welcome, ${authProvider.currentUser?.name ?? 'Landlord'}!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkTextPrimary : Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Manage your properties and tenants',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white70,
+                    color: isDark ? AppColors.darkTextSecondary : Colors.white70,
                   ),
                 ),
               ],
@@ -120,25 +116,25 @@ class _LandlordHomeScreen extends StatelessWidget {
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
             children: [
-              _buildStatCard(
+              _buildStatCard(context,
                 title: 'Total Collected',
                 value: AppFormat.formatCurrency(totalCollected),
                 color: Colors.green,
                 icon: Icons.attach_money,
               ),
-              _buildStatCard(
+              _buildStatCard(context,
                 title: 'Bills Paid',
                 value: paymentProvider.getTotalPaidBillsCountForLandlord(currentLandlordId).toString(),
                 color: Colors.teal,
                 icon: Icons.done_all,
               ),
-              _buildStatCard(
+              _buildStatCard(context,
                 title: 'Pending Bills',
                 value: paymentProvider.getPendingBillsForLandlord(currentLandlordId).length.toString(),
                 color: Colors.orange,
                 icon: Icons.pending_actions,
               ),
-              _buildStatCard(
+              _buildStatCard(context,
                 title: 'Active Tenants',
                 value: activeTenants.toString(),
                 color: Colors.blue,
@@ -296,16 +292,16 @@ class _LandlordHomeScreen extends StatelessWidget {
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.payment, color: Colors.grey, size: 40),
+                        Icon(Icons.payment, color: textSecondary, size: 40),
                         const SizedBox(height: 10),
-                        const Text(
+                        Text(
                           'No Payments Yet',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : null),
                         ),
                         const SizedBox(height: 5),
-                        const Text(
+                        Text(
                           'Payments from tenants will appear here',
-                          style: TextStyle(color: Colors.grey, fontSize: 12),
+                          style: TextStyle(color: textSecondary, fontSize: 12),
                         ),
                       ],
                     ),
@@ -346,7 +342,7 @@ class _LandlordHomeScreen extends StatelessWidget {
                         ),
                         Text(
                           'Paid: ${AppFormat.formatDate(paidBill['paidDate'] as DateTime)}',
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: textSecondary),
                         ),
                       ],
                     ),
@@ -390,7 +386,7 @@ class _LandlordHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatCard({
+  Widget _buildStatCard(BuildContext context, {
     required String title,
     required String value,
     required Color color,
@@ -415,9 +411,9 @@ class _LandlordHomeScreen extends StatelessWidget {
             const SizedBox(height: 5),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey,
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : AppColors.textSecondary,
               ),
             ),
           ],
@@ -484,6 +480,7 @@ class _LandlordProfileSectionState extends State<LandlordProfileSection> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   XFile? _selectedPhoto;
+  Uint8List? _previewBytes;
   bool _saving = false;
 
   @override
@@ -501,11 +498,18 @@ class _LandlordProfileSectionState extends State<LandlordProfileSection> {
   }
 
   Future<void> _pickPhoto() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) {
-      setState(() {
-        _selectedPhoto = picked;
-      });
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _selectedPhoto = picked;
+          _previewBytes = bytes;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to pick photo: $e')));
     }
   }
 
@@ -539,177 +543,277 @@ class _LandlordProfileSectionState extends State<LandlordProfileSection> {
     }
   }
 
+  ImageProvider _buildProfileImage(User? user) {
+    if (_previewBytes != null) return MemoryImage(_previewBytes!);
+    if (user?.photoUrl != null && user!.photoUrl!.isNotEmpty) return NetworkImage(user.photoUrl!);
+    return const AssetImage(''); // fallback handled by CircleAvatar child
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: const Color(0xFF155E63),
-                    backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                        ? NetworkImage(user.photoUrl!)
-                        : null,
-                    child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
-                        ? Text(
-                            user?.name.substring(0, 1).toUpperCase() ?? 'L',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    user?.name ?? 'Landlord',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+        // Profile Header Card with gradient
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                  : [AppColors.primary, AppColors.secondary],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: isDark ? Colors.black26 : AppColors.shadow,
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 38,
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                backgroundImage: _previewBytes != null || (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+                    ? _buildProfileImage(user)
+                    : null,
+                child: _previewBytes == null && (user?.photoUrl == null || user!.photoUrl!.isEmpty)
+                    ? Text(
+                        (user?.name ?? 'L').substring(0, 1).toUpperCase(),
+                        style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.w700),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.name ?? 'Landlord',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    user?.email ?? 'No email',
-                    style: const TextStyle(
-                      color: Colors.grey,
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? 'No email',
+                      style: const TextStyle(fontSize: 13, color: Colors.white70),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _pickPhoto,
-                    icon: const Icon(Icons.image),
-                    label: const Text('Choose profile photo'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF155E63),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                  ),
-                  if (_selectedPhoto != null) ...[
-                    const SizedBox(height: 12),
-                    Text('Selected image: ${_selectedPhoto!.name}'),
-                  ],
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    text: _saving ? 'Saving...' : 'Save Profile',
-                    onPressed: _saving ? null : _saveProfile,
-                    color: Colors.green,
-                  ),
-                  const SizedBox(height: 12),
-                  if (user?.inviteCode != null)
-                    ListTile(
-                      leading: const Icon(Icons.vpn_key),
-                      title: const Text('Invite Code'),
-                      subtitle: Text(user!.inviteCode ?? ''),
-                      trailing: Row(
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.copy),
-                            tooltip: 'Copy invite code',
-                            onPressed: () {
-                              final code = user.inviteCode ?? '';
-                              Clipboard.setData(ClipboardData(text: code));
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invite code copied')));
-                            },
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              final messenger = ScaffoldMessenger.of(context);
-                              try {
-                                final newCode = await authProvider.regenerateInviteCode(user.id);
-                                if (!mounted) return;
-                                messenger.showSnackBar(SnackBar(content: Text('New code: $newCode')));
-                              } catch (e) {
-                                if (!mounted) return;
-                                messenger.showSnackBar(SnackBar(content: Text(e.toString())));
-                              }
-                            },
-                            child: const Text('Regenerate'),
+                          const Icon(Icons.business_outlined, size: 13, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            'PROFESSIONAL ACCOUNT',
+                            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                     ),
-                  const SizedBox(height: 12),
-                  Consumer<ThemeProvider>(builder: (context, theme, child) {
-                    return SwitchListTile(
-                      title: const Text('Dark Mode'),
-                      value: theme.isDark,
-                      onChanged: (_) => theme.toggle(),
-                      secondary: const Icon(Icons.dark_mode),
-                    );
-                  }),
-                  const SizedBox(height: 12),
-                  CustomButton(
-                    text: 'View Tenants',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ViewTenantsScreen()),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  CustomButton(
-                    text: 'Logout',
-                    onPressed: () {
-                      authProvider.logout();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/login',
-                        (route) => false,
-                      );
-                    },
-                    color: Colors.red,
-                  ),
-                ],
+                  ],
+                ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Account Settings Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: isDark ? AppColors.darkTextPrimary : AppColors.primary),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Account Settings',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.primary),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(labelText: 'Full Name', prefixIcon: Icon(Icons.person_outline), border: OutlineInputBorder()),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Please enter your name';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(labelText: 'Phone Number', prefixIcon: Icon(Icons.phone_outlined), border: OutlineInputBorder()),
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Please enter your phone number';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _pickPhoto,
+                          icon: const Icon(Icons.image_outlined),
+                          label: const Text('Change Profile Photo'),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
+                            foregroundColor: isDark ? AppColors.darkTextPrimary : AppColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                      if (_selectedPhoto != null) ...[
+                        const SizedBox(height: 10),
+                        Text('Selected: ${_selectedPhoto!.name}', style: TextStyle(fontSize: 12, color: textSecondary)),
+                      ],
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          text: _saving ? 'Saving...' : 'Save Profile',
+                          onPressed: _saving ? null : _saveProfile,
+                          color: AppColors.secondary,
+                          isLoading: _saving,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+        const SizedBox(height: 16),
+
+        // Account Details Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Column(
+            children: [
+              if (user?.inviteCode != null)
+                Container(
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: isDark ? AppColors.darkSurface : const Color(0xFFF5F7FA),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: isDark ? AppColors.darkBorder : AppColors.border),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.vpn_key_outlined, color: isDark ? AppColors.darkTextPrimary : AppColors.secondary),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Invite Code', style: TextStyle(fontWeight: FontWeight.w700, color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary)),
+                            const SizedBox(height: 2),
+                            Text(user!.inviteCode ?? '', style: TextStyle(color: textSecondary)),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.copy_outlined),
+                        onPressed: () {
+                          final code = user.inviteCode ?? '';
+                          Clipboard.setData(ClipboardData(text: code));
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invite code copied')));
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ListTile(
+                leading: Icon(Icons.phone_outlined, color: isDark ? AppColors.darkTextPrimary : AppColors.primary),
+                title: const Text('Phone', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(user?.phone ?? 'Not provided', style: TextStyle(color: textSecondary)),
+              ),
+              if (user?.phone != null) const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Icon(Icons.badge_outlined, color: isDark ? AppColors.darkTextPrimary : AppColors.primary),
+                title: const Text('Role', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('LANDLORD', style: TextStyle(color: textSecondary)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Actions Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Column(
+            children: [
+              Consumer<ThemeProvider>(builder: (context, theme, child) {
+                return SwitchListTile(
+                  title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600)),
+                  subtitle: Text('Use a darker experience for low-light sessions', style: TextStyle(color: textSecondary, fontSize: 12)),
+                  value: theme.isDark,
+                  onChanged: (_) => theme.toggle(),
+                  secondary: Icon(Icons.dark_mode_outlined, color: isDark ? AppColors.darkTextPrimary : AppColors.secondary),
+                );
+              }),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.people_outline, color: isDark ? AppColors.darkTextPrimary : AppColors.secondary),
+                title: const Text('Manage Tenants', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('View and organize your tenants', style: TextStyle(color: textSecondary, fontSize: 12)),
+                trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textSecondary),
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewTenantsScreen()));
+                },
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: Icon(Icons.logout_outlined, color: isDark ? Colors.red.shade300 : AppColors.danger),
+                title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text('Sign out of your account securely', style: TextStyle(color: textSecondary, fontSize: 12)),
+                trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textSecondary),
+                onTap: () {
+                  authProvider.logout();
+                  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
       ],
     );
   }

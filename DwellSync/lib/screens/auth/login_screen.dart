@@ -5,6 +5,7 @@ import 'package:dwell_sync/widgets/custom_button.dart';
 import 'package:dwell_sync/widgets/custom_text_field.dart';
 import 'package:dwell_sync/screens/tenant/tenant_dashboard.dart';
 import 'package:dwell_sync/screens/landlord/landlord_dashboard.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -68,8 +69,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FA),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -77,8 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 520),
               child: Card(
-                elevation: 6,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Form(
@@ -89,15 +92,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 8),
                         Center(
                           child: Column(
-                            children: const [
-                              Icon(Icons.home_work, size: 64, color: Color(0xFF155E63)),
-                              SizedBox(height: 12),
+                            children: [
+                              CircleAvatar(
+                                radius: 36,
+                                backgroundColor: isDark ? AppColors.darkSurface : const Color(0xFFE9F7F4),
+                                child: const Icon(Icons.home_work_outlined, size: 38, color: AppColors.secondary),
+                              ),
+                              const SizedBox(height: 14),
                               Text(
                                 'DwellSync',
-                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF155E63)),
+                                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: isDark ? AppColors.darkTextPrimary : AppColors.primary),
                               ),
-                              SizedBox(height: 6),
-                              Text('Sign in to your account', style: TextStyle(color: Colors.grey)),
+                              const SizedBox(height: 6),
+                              Text('Sign in to your account', style: TextStyle(color: textSecondary)),
                             ],
                           ),
                         ),
@@ -106,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _emailController,
                           label: 'Email Address',
                           hintText: 'name@company.com',
-                          prefixIcon: Icons.email,
+                          prefixIcon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Please enter your email';
@@ -119,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                           label: 'Password',
                           hintText: 'Enter your password',
-                          prefixIcon: Icons.lock,
+                          prefixIcon: Icons.lock_outline,
                           obscureText: !_isPasswordVisible,
                           validator: (value) {
                             if (value == null || value.isEmpty) return 'Please enter your password';
@@ -136,13 +143,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Checkbox(
                                   value: _isPasswordVisible,
                                   onChanged: (value) => setState(() => _isPasswordVisible = value ?? false),
+                                  activeColor: AppColors.secondary,
                                 ),
-                                const Text('Show Password'),
+                                Text('Show Password', style: TextStyle(color: textSecondary)),
                               ],
                             ),
                             TextButton(
                               onPressed: () => Navigator.pushNamed(context, '/forgot-password'),
-                              child: const Text('Forgot password?'),
+                              child: const Text('Forgot password?', style: TextStyle(color: AppColors.secondary)),
                             ),
                           ],
                         ),
@@ -162,12 +170,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                             TextButton(
                               onPressed: () => Navigator.pushNamed(context, '/register/tenant'),
-                              child: const Text('Register as Tenant'),
+                              child: const Text('Register as Tenant', style: TextStyle(color: AppColors.secondary)),
                             ),
                             const SizedBox(width: 12),
                             TextButton(
                               onPressed: () => Navigator.pushNamed(context, '/register/landlord'),
-                              child: const Text('Register as Landlord'),
+                              child: const Text('Register as Landlord', style: TextStyle(color: AppColors.secondary)),
                             ),
                           ],
                         ),

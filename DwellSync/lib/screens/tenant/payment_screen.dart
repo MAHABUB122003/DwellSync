@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
+import 'package:dwell_sync/utils/colors.dart';
 import 'package:dwell_sync/utils/format.dart';
 import 'package:dwell_sync/widgets/custom_button.dart';
 import 'package:dwell_sync/widgets/custom_text_field.dart';
@@ -32,7 +33,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     'nagad': 'Nagad',
     'rocket': 'Rocket',
     'card': 'Card',
-    'bank': 'Bank Transfer',
+    'bank_transfer': 'Bank Transfer',
   };
 
   @override
@@ -87,7 +88,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  void _processPayment() {
+  Future<void> _processPayment() async {
     if (_transactionIdController.text.isEmpty) {
       Fluttertoast.showToast(
         msg: 'Please enter transaction ID',
@@ -112,30 +113,43 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     final paymentProvider = Provider.of<PaymentProvider>(context, listen: false);
     
-    paymentProvider.makePayment(
-      widget.billId,
-      _selectedMethod,
-      _transactionIdController.text.trim(),
-    );
+    try {
+      await paymentProvider.makePayment(
+        widget.billId,
+        _paymentAmount,
+        _selectedMethod,
+        _transactionIdController.text.trim(),
+      );
 
-    Fluttertoast.showToast(
-      msg: 'Payment of ${AppFormat.formatCurrency(_paymentAmount)} successful!',
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.green,
-      textColor: Colors.white,
-    );
-
-    Navigator.pop(context);
+      if (!mounted) return;
+      Fluttertoast.showToast(
+        msg: 'Payment of ${AppFormat.formatCurrency(_paymentAmount)} successful!',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      Fluttertoast.showToast(
+        msg: 'Payment failed: $e',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Make Payment'),
-        backgroundColor: const Color(0xFF155E63),
-        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -148,19 +162,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Payment Summary',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : null,
                       ),
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Bill ID:'),
-                        Text(widget.billId),
+                        Text('Bill ID:', style: TextStyle(color: textSecondary)),
+                        Text(widget.billId, style: TextStyle(color: isDark ? AppColors.darkTextPrimary : null)),
                       ],
                     ),
                     const SizedBox(height: 10),
@@ -175,10 +190,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         ),
                         Text(
                           AppFormat.formatCurrency(widget.amount),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: textSecondary,
                             decoration: TextDecoration.lineThrough,
                           ),
                         ),
@@ -191,11 +206,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(height: 20),
 
             // Payment Amount Selection
-            const Text(
+            Text(
               'Select Payment Amount',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.darkTextPrimary : null,
               ),
             ),
             const SizedBox(height: 15),
@@ -210,7 +226,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       border: Border.all(
                         color: _selectedAmountOption == 'full'
                             ? Colors.green
-                            : Colors.grey[300]!,
+                            : (isDark ? AppColors.darkBorder : Colors.grey[300]!),
                         width: _selectedAmountOption == 'full' ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -224,16 +240,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Full Amount',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : null),
                             ),
                             const SizedBox(height: 5),
                             Text(
                               'Pay entire bill',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: textSecondary,
                               ),
                             ),
                           ],
@@ -261,7 +277,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       border: Border.all(
                         color: _selectedAmountOption == 'half'
                             ? Colors.orange
-                            : Colors.grey[300]!,
+                            : (isDark ? AppColors.darkBorder : Colors.grey[300]!),
                         width: _selectedAmountOption == 'half' ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -275,16 +291,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Half Amount',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : null),
                             ),
                             const SizedBox(height: 5),
                             Text(
                               'Pay 50% of bill',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey[600],
+                                color: textSecondary,
                               ),
                             ),
                           ],
@@ -312,7 +328,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       border: Border.all(
                         color: _selectedAmountOption == 'custom'
                             ? Colors.blue
-                            : Colors.grey[300]!,
+                            : (isDark ? AppColors.darkBorder : Colors.grey[300]!),
                         width: _selectedAmountOption == 'custom' ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
@@ -326,19 +342,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Column(
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Custom Amount',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: isDark ? AppColors.darkTextPrimary : null),
                                 ),
-                                SizedBox(height: 5),
+                                const SizedBox(height: 5),
                                 Text(
                                   'Enter your own amount',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: textSecondary,
                                   ),
                                 ),
                               ],
@@ -383,20 +399,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
             // Payment Summary with selected amount
             Card(
-              color: Colors.blue[50],
+              color: isDark ? AppColors.darkSurface : Colors.blue[50],
               child: Padding(
                 padding: const EdgeInsets.all(15),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'You will pay:',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey,
+                            color: textSecondary,
                           ),
                         ),
                       ],
@@ -415,17 +431,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             const SizedBox(height: 30),
 
-            const Text(
+            Text(
               'Select Payment Method',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: isDark ? AppColors.darkTextPrimary : null,
               ),
             ),
             const SizedBox(height: 10),
             ..._paymentMethods.entries.map((method) {
               return RadioListTile<String>(
-                title: Text(method.value),
+                title: Text(method.value, style: TextStyle(color: isDark ? AppColors.darkTextPrimary : null)),
                 value: method.key,
                 groupValue: _selectedMethod,
                 onChanged: (value) {
@@ -446,24 +463,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
             const SizedBox(height: 10),
             Text(
               'Note: Complete the payment in your ${_paymentMethods[_selectedMethod]} app first, then enter the transaction ID here.',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey,
+                color: textSecondary,
               ),
             ),
             const SizedBox(height: 30),
 
             Card(
-              color: Colors.blue[50],
+              color: isDark ? AppColors.darkSurface : Colors.blue[50],
               child: Padding(
                 padding: const EdgeInsets.all(15),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'How to Pay:',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : null,
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -473,6 +491,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           : _selectedMethod == 'nagad'
                               ? '1. Open Nagad App\n2. Select Send Money\n3. Enter: 017XXXXXXXX\n4. Amount: ${AppFormat.formatCurrency(_paymentAmount)}\n5. Enter your PIN\n6. Copy Transaction ID'
                               : 'Complete the payment of ${AppFormat.formatCurrency(_paymentAmount)} and enter the transaction ID provided.',
+                      style: TextStyle(color: isDark ? AppColors.darkTextPrimary : null),
                     ),
                   ],
                 ),

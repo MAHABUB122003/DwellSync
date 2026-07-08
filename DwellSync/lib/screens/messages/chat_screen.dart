@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class ChatScreen extends StatefulWidget {
   final String currentUserId;
@@ -29,6 +30,7 @@ class _ChatScreenState extends State<ChatScreen> {
     final matches = auth.allUsers.where((u) => u.id == widget.otherUserId).toList();
     final otherName = matches.isNotEmpty ? matches.first.name : 'Conversation';
     final otherPhotoUrl = matches.isNotEmpty ? matches.first.photoUrl : null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -71,7 +73,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                           decoration: BoxDecoration(
-                            color: isMe ? const Color(0xFF155E63) : Colors.grey[200],
+                            color: isMe ? const Color(0xFF155E63) : (isDark ? AppColors.darkSurface : Colors.grey[200]),
                             borderRadius: BorderRadius.only(
                               topLeft: const Radius.circular(16),
                               topRight: const Radius.circular(16),
@@ -82,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           child: Text(
                             m['text'] ?? '',
                             style: TextStyle(
-                              color: isMe ? Colors.white : Colors.black87,
+                              color: isMe ? Colors.white : (isDark ? AppColors.darkTextPrimary : Colors.black87),
                               fontSize: 15,
                             ),
                           ),

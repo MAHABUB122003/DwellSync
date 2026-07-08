@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -18,25 +19,29 @@ class CustomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final buttonColor = color ?? AppColors.primary;
+    final shadowColor = isDark ? AppColors.darkShadow : AppColors.shadow;
+
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 52,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          elevation: 4,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
         child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color ?? const Color(0xFF155E63), (color ?? const Color(0xFF155E63)).withValues(alpha: 0.9)],
+              colors: [buttonColor, buttonColor.withValues(alpha: 0.9)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 3))],
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [BoxShadow(color: shadowColor, blurRadius: 12, offset: const Offset(0, 4))],
           ),
           child: Center(
             child: isLoading

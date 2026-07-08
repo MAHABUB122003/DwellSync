@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
 // payment_provider not required here
 import 'package:dwell_sync/screens/messages/conversations_screen.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class TenantLandlordProfile extends StatelessWidget {
   const TenantLandlordProfile({super.key});
@@ -54,7 +55,7 @@ class TenantLandlordProfile extends StatelessWidget {
                         children: [
                           Text(landlord.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 6),
-                          Text(landlord.email, style: const TextStyle(color: Colors.grey)),
+                          Text(landlord.email, style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : Colors.grey)),
                           const SizedBox(height: 6),
                           Text('Phone: ${landlord.phone.isNotEmpty ? landlord.phone : 'N/A'}'),
                         ],

@@ -1,7 +1,9 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dwell_sync/models/bill.dart';
+import 'package:dwell_sync/models/user.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
 import 'package:dwell_sync/providers/theme_provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
@@ -13,6 +15,7 @@ import 'package:dwell_sync/screens/tenant/help_screen.dart';
 import 'package:dwell_sync/screens/auth/login_screen.dart';
 import 'package:dwell_sync/utils/format.dart';
 import 'package:dwell_sync/widgets/custom_button.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class TenantDashboard extends StatefulWidget {
   const TenantDashboard({super.key});
@@ -25,6 +28,7 @@ class _TenantDashboardState extends State<TenantDashboard> {
   int _selectedIndex = 0;
 
   Widget _buildHomeScreen(AuthProvider authProvider, PaymentProvider paymentProvider) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     // Get ONLY this tenant's bills
     final currentTenantId = authProvider.currentUser?.id ?? '';
     final pendingBills = paymentProvider.getPendingBillsForSpecificTenant(currentTenantId);
@@ -38,7 +42,7 @@ class _TenantDashboardState extends State<TenantDashboard> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF155E63),
+              color: isDark ? AppColors.darkCard : const Color(0xFF155E63),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -46,18 +50,18 @@ class _TenantDashboardState extends State<TenantDashboard> {
               children: [
                 Text(
                   'Hello, ${authProvider.currentUser?.name ?? 'Tenant'}!',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: isDark ? AppColors.darkTextPrimary : Colors.white,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Welcome to DwellSync',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.white70,
+                    color: isDark ? AppColors.darkTextSecondary : Colors.white70,
                   ),
                 ),
               ],
@@ -186,9 +190,9 @@ class _TenantDashboardState extends State<TenantDashboard> {
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         const SizedBox(height: 5),
-                        const Text(
+                        Text(
                           'All your bills are paid! Great job.',
-                          style: TextStyle(color: Colors.grey),
+                          style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : Colors.grey),
                         ),
                       ],
                     ),
@@ -372,9 +376,9 @@ class _TenantDashboardState extends State<TenantDashboard> {
             const SizedBox(height: 10),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : Colors.grey,
               ),
             ),
           ],
@@ -563,8 +567,6 @@ class _TenantDashboardState extends State<TenantDashboard> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('DwellSync - Tenant'),
-        backgroundColor: const Color(0xFF155E63),
-        foregroundColor: Colors.white,
       ),
       body: screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -606,6 +608,7 @@ class _TenantProfileSectionState extends State<TenantProfileSection> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   XFile? _selectedPhoto;
+  Uint8List? _previewBytes;
   bool _saving = false;
 
   @override
@@ -623,11 +626,18 @@ class _TenantProfileSectionState extends State<TenantProfileSection> {
   }
 
   Future<void> _pickPhoto() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (picked != null) {
-      setState(() {
-        _selectedPhoto = picked;
-      });
+    try {
+      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (picked != null) {
+        final bytes = await picked.readAsBytes();
+        setState(() {
+          _selectedPhoto = picked;
+          _previewBytes = bytes;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to pick photo: $e')));
     }
   }
 
@@ -661,144 +671,252 @@ class _TenantProfileSectionState extends State<TenantProfileSection> {
     }
   }
 
+  ImageProvider _buildProfileImage(User? user) {
+    if (_previewBytes != null) return MemoryImage(_previewBytes!);
+    if (user?.photoUrl != null && user!.photoUrl!.isNotEmpty) return NetworkImage(user.photoUrl!);
+    return const AssetImage(''); // fallback handled by CircleAvatar child
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.currentUser;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
+        // Profile Header Card with gradient
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [const Color(0xFF1A1A2E), const Color(0xFF16213E)]
+                  : [const Color(0xFF155E63), const Color(0xFF1A8D8A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: isDark ? Colors.black26 : AppColors.shadow,
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 38,
+                backgroundColor: Colors.white.withValues(alpha: 0.18),
+                backgroundImage: _previewBytes != null || (user?.photoUrl != null && user!.photoUrl!.isNotEmpty)
+                    ? _buildProfileImage(user)
+                    : null,
+                child: _previewBytes == null && (user?.photoUrl == null || user!.photoUrl!.isEmpty)
+                    ? Text(
+                        (user?.name ?? 'T').substring(0, 1).toUpperCase(),
+                        style: const TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.w700),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.name ?? 'Tenant',
+                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? 'No email',
+                      style: const TextStyle(fontSize: 13, color: Colors.white70),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.16),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.home_outlined, size: 13, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            (user?.role ?? 'tenant').toUpperCase(),
+                            style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        // Account Information Card
         Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           child: Padding(
             padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: const Color(0xFF155E63),
-                    backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                        ? NetworkImage(user.photoUrl!)
-                        : null,
-                    child: (user?.photoUrl == null || user!.photoUrl!.isEmpty)
-                        ? Text(
-                            (user?.name ?? 'T').substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 32,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    user?.name ?? 'Tenant',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 20, color: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63)),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Account Settings',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    user?.email ?? 'No email',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  const Divider(),
-                  const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Phone',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Please enter your phone number';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _pickPhoto,
-                    icon: const Icon(Icons.image),
-                    label: const Text('Choose profile photo'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF155E63),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                  ),
-                  if (_selectedPhoto != null) ...[
-                    const SizedBox(height: 12),
-                    Text('Selected image: ${_selectedPhoto!.name}'),
                   ],
-                  const SizedBox(height: 20),
-                  CustomButton(
-                    text: _saving ? 'Saving...' : 'Save Profile',
-                    onPressed: _saving ? null : _saveProfile,
-                    color: Colors.green,
-                    isLoading: _saving,
+                ),
+                const SizedBox(height: 20),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Full Name',
+                          prefixIcon: Icon(Icons.person_outline),
+                          border: OutlineInputBorder(),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Please enter your name';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Phone Number',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                          border: OutlineInputBorder(),
+                        ),
+                        keyboardType: TextInputType.phone,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) return 'Please enter your phone number';
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _pickPhoto,
+                          icon: const Icon(Icons.image_outlined),
+                          label: const Text('Change Profile Photo'),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: isDark ? AppColors.darkBorder : AppColors.border),
+                            foregroundColor: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                        ),
+                      ),
+                      if (_selectedPhoto != null) ...[
+                        const SizedBox(height: 10),
+                        Text('Selected: ${_selectedPhoto!.name}', style: TextStyle(fontSize: 12, color: textSecondary)),
+                      ],
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: CustomButton(
+                          text: _saving ? 'Saving...' : 'Save Profile',
+                          onPressed: _saving ? null : _saveProfile,
+                          color: const Color(0xFF155E63),
+                          isLoading: _saving,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    leading: const Icon(Icons.phone),
-                    title: const Text('Phone'),
-                    subtitle: Text(user?.phone ?? 'Not provided'),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.person),
-                    title: const Text('Role'),
-                    subtitle: Text(user?.role.toUpperCase() ?? 'Tenant'),
-                  ),
-                  const SizedBox(height: 12),
-                  Consumer<ThemeProvider>(builder: (context, theme, child) {
-                    return SwitchListTile(
-                      title: const Text('Dark Mode'),
-                      value: theme.isDark,
-                      onChanged: (_) => theme.toggle(),
-                      secondary: const Icon(Icons.dark_mode),
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  CustomButton(
-                    text: 'Logout',
-                    onPressed: () {
-                      authProvider.logout();
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                        (route) => false,
-                      );
-                    },
-                    color: Colors.red,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
+        const SizedBox(height: 16),
+
+        // Account Details Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Column(
+            children: [
+              ListTile(
+                leading: Icon(Icons.phone_outlined, color: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63)),
+                title: const Text('Phone', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(user?.phone ?? 'Not provided', style: TextStyle(color: textSecondary)),
+              ),
+              if (user?.phone != null) const Divider(height: 1, indent: 56),
+              ListTile(
+                leading: Icon(Icons.badge_outlined, color: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63)),
+                title: const Text('Role', style: TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Text(user?.role.toUpperCase() ?? 'Tenant', style: TextStyle(color: textSecondary)),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Preferences Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: Consumer<ThemeProvider>(builder: (context, theme, child) {
+            return SwitchListTile(
+              title: const Text('Dark Mode', style: TextStyle(fontWeight: FontWeight.w600)),
+              subtitle: Text('Use a darker experience', style: TextStyle(color: textSecondary, fontSize: 12)),
+              value: theme.isDark,
+              onChanged: (_) => theme.toggle(),
+              secondary: Icon(Icons.dark_mode_outlined, color: isDark ? AppColors.darkTextPrimary : const Color(0xFF155E63)),
+            );
+          }),
+        ),
+        const SizedBox(height: 16),
+
+        // Logout Card
+        Card(
+          elevation: isDark ? 0 : 2,
+          color: isDark ? AppColors.darkCard : null,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          child: ListTile(
+            leading: Icon(Icons.logout_outlined, color: isDark ? Colors.red.shade300 : AppColors.danger),
+            title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: Text('Sign out of your account', style: TextStyle(color: textSecondary, fontSize: 12)),
+            trailing: Icon(Icons.arrow_forward_ios, size: 16, color: textSecondary),
+            onTap: () {
+              authProvider.logout();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 20),
       ],
     );
   }

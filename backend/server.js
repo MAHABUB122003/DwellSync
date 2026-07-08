@@ -14,22 +14,22 @@ const messageRoutes = require("./routes/messages");
 
 const app = express();
 
+// Connect Database
+connectDB();
+
+// Middleware (must be before routes and static files for CORS headers)
+app.use(cors({
+  origin: true,
+  credentials: true,
+}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 app.use("/uploads", express.static(uploadsDir));
-
-// Connect Database
-connectDB();
-
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
 
 // Routes
 app.get("/", (req, res) => {

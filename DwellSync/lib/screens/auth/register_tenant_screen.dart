@@ -4,6 +4,7 @@ import 'package:dwell_sync/providers/auth_provider.dart';
 import 'package:dwell_sync/screens/tenant/tenant_dashboard.dart';
 import 'package:dwell_sync/widgets/custom_button.dart';
 import 'package:dwell_sync/widgets/custom_text_field.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class RegisterTenantScreen extends StatefulWidget {
   const RegisterTenantScreen({super.key});
@@ -68,8 +69,10 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? AppColors.darkTextPrimary : AppColors.primary;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F8FA),
       appBar: AppBar(title: const Text('Create Tenant Account')),
       body: Center(
         child: SingleChildScrollView(
@@ -77,21 +80,21 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Card(
-              elevation: 6,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Form(
                   key: _formKey,
                   child: Column(
                     children: [
-                      const Text('Tenant Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                      Text('Tenant Registration', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: titleColor)),
                       const SizedBox(height: 14),
                       CustomTextField(
                         controller: _nameController,
                         label: 'Full Name',
                         hintText: 'Enter full name',
-                        prefixIcon: Icons.person,
+                        prefixIcon: Icons.person_outline,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Please enter your full name';
@@ -104,7 +107,7 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
                         controller: _emailController,
                         label: 'Email',
                         hintText: 'Enter email',
-                        prefixIcon: Icons.email,
+                        prefixIcon: Icons.email_outlined,
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -121,7 +124,7 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
                         controller: _phoneController,
                         label: 'Phone',
                         hintText: 'Enter phone number',
-                        prefixIcon: Icons.phone,
+                        prefixIcon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -135,7 +138,7 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
                         controller: _passwordController,
                         label: 'Password',
                         hintText: 'Create a password',
-                        prefixIcon: Icons.lock,
+                        prefixIcon: Icons.lock_outline,
                         obscureText: true,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -152,7 +155,7 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
                         controller: _codeController,
                         label: 'Invite Code',
                         hintText: 'Enter invite code from landlord',
-                        prefixIcon: Icons.vpn_key,
+                        prefixIcon: Icons.vpn_key_outlined,
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
                             return 'Invite code is required for tenant registration';
@@ -162,9 +165,9 @@ class _RegisterTenantScreenState extends State<RegisterTenantScreen> {
                       ),
 
                       const SizedBox(height: 20),
-                      SizedBox(width: double.infinity, child: CustomButton(text: 'Register', onPressed: _register, color: Colors.green)),
+                      SizedBox(width: double.infinity, child: CustomButton(text: 'Register', onPressed: _register, color: AppColors.secondary)),
                       const SizedBox(height: 12),
-                      TextButton(onPressed: () => Navigator.pop(context), child: const Text('Back to Login')),
+                      TextButton(onPressed: () => Navigator.pop(context), child: Text('Back to Login', style: TextStyle(color: titleColor))),
                     ],
                   ),
                 ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -22,14 +23,19 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final hintColor = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            color: Colors.grey,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: textColor,
+            fontSize: 13,
           ),
         ),
         const SizedBox(height: 8),
@@ -38,20 +44,11 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          style: TextStyle(color: textColor),
           decoration: InputDecoration(
             hintText: hintText,
-            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.grey.shade600) : null,
-            filled: true,
-            fillColor: Colors.white,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: hintColor) : null,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: Color(0xFF155E63), width: 1.6),
-            ),
           ),
         ),
       ],

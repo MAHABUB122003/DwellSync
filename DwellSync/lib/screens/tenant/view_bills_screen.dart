@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
+import 'package:dwell_sync/utils/colors.dart';
 import 'package:dwell_sync/utils/format.dart';
 import 'package:dwell_sync/screens/tenant/payment_screen.dart';
 
@@ -17,19 +18,19 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final authProvider = Provider.of<AuthProvider>(context);
     final paymentProvider = Provider.of<PaymentProvider>(context);
     final currentUser = authProvider.currentUser;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
 
     if (currentUser == null) {
       return Scaffold(
         appBar: AppBar(
           title: const Text('My Bills'),
-          backgroundColor: const Color(0xFF155E63),
-          foregroundColor: Colors.white,
         ),
-        body: const Center(
-          child: Text('Please login first'),
+        body: Center(
+          child: Text('Please login first', style: TextStyle(color: textPrimary)),
         ),
       );
     }
@@ -42,8 +43,6 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Bills'),
-        backgroundColor: const Color(0xFF155E63),
-        foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -85,6 +84,7 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
   }
 
   Widget _buildFilterChip(String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _filterStatus == value;
     return FilterChip(
       label: Text(label),
@@ -94,16 +94,19 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
           _filterStatus = value;
         });
       },
-      backgroundColor: Colors.grey[200],
-      selectedColor: const Color(0xFF155E63),
+      backgroundColor: isDark ? AppColors.darkSurface : Colors.grey[200],
+      selectedColor: AppColors.secondary,
       labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black,
+        color: isSelected ? Colors.white : (isDark ? AppColors.darkTextPrimary : Colors.black87),
         fontWeight: FontWeight.w500,
       ),
     );
   }
 
   Widget _buildBillCard(BuildContext context, dynamic bill) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary = isDark ? AppColors.darkTextPrimary : AppColors.textPrimary;
+    final textSecondary = isDark ? AppColors.darkTextSecondary : AppColors.textSecondary;
     final statusColor = bill.status == 'paid' ? Colors.green : Colors.orange;
     final statusText = bill.status == 'paid' ? 'Paid' : 'Pending';
     final isOverdue = bill.dueDate.isBefore(DateTime.now()) && bill.status == 'pending';
@@ -123,16 +126,17 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Bill ID',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: textSecondary),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         bill.id,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
+                          color: textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -167,16 +171,17 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Due Date',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       AppFormat.formatDate(bill.dueDate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 14,
+                        color: textPrimary,
                       ),
                     ),
                   ],
@@ -184,16 +189,17 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
+                    Text(
                       'Bill Date',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: textSecondary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       AppFormat.formatDate(bill.billDate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 14,
+                        color: textPrimary,
                       ),
                     ),
                   ],
@@ -201,39 +207,40 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(),
+            Divider(color: isDark ? AppColors.darkBorder : null),
             const SizedBox(height: 12),
             // Bill breakdown
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBreakdownItem('Rent', bill.rentAmount),
-                _buildBreakdownItem('Electricity', bill.electricityBill),
+                _buildBreakdownItem('Rent', bill.rentAmount, textSecondary, textPrimary),
+                _buildBreakdownItem('Electricity', bill.electricityBill, textSecondary, textPrimary),
               ],
             ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBreakdownItem('Water', bill.waterBill),
-                _buildBreakdownItem('Gas', bill.gasBill),
+                _buildBreakdownItem('Water', bill.waterBill, textSecondary, textPrimary),
+                _buildBreakdownItem('Gas', bill.gasBill, textSecondary, textPrimary),
               ],
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue[50],
+                color: isDark ? AppColors.darkSurface : Colors.blue[50],
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Total Amount',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                      color: textPrimary,
                     ),
                   ),
                   Text(
@@ -278,23 +285,24 @@ class _ViewBillsScreenState extends State<ViewBillsScreen> {
     );
   }
 
-  Widget _buildBreakdownItem(String label, double amount) {
+  Widget _buildBreakdownItem(String label, double amount, Color labelColor, Color valueColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: labelColor,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           AppFormat.formatCurrency(amount),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 14,
+            color: valueColor,
           ),
         ),
       ],

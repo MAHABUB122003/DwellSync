@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:dwell_sync/providers/payment_provider.dart';
 import 'package:dwell_sync/screens/landlord/tenant_detail_screen.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class ViewTenantsScreen extends StatelessWidget {
   const ViewTenantsScreen({super.key});
@@ -31,7 +32,7 @@ class ViewTenantsScreen extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     (t['active'] == true) ? 'Active' : 'Inactive',
-                    style: TextStyle(color: (t['active'] == true) ? Colors.green : Colors.grey),
+                    style: TextStyle(color: (t['active'] == true) ? Colors.green : (Theme.of(context).brightness == Brightness.dark ? AppColors.darkTextSecondary : Colors.grey)),
                   ),
                 ],
               ),

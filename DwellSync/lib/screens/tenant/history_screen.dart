@@ -4,16 +4,18 @@ import 'package:dwell_sync/providers/payment_provider.dart';
 import 'package:dwell_sync/providers/auth_provider.dart';
 import 'package:dwell_sync/models/bill.dart';
 import 'package:dwell_sync/utils/format.dart';
+import 'package:dwell_sync/utils/colors.dart';
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final paymentProvider = Provider.of<PaymentProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
     final currentTenantId = authProvider.currentUser?.id;
-    
+
     // Filter bills and payments for current tenant only
     final bills = paymentProvider.getBillsForTenantId(currentTenantId ?? '');
     final payments = paymentProvider.getPaymentsForTenantId(currentTenantId ?? '');
@@ -23,8 +25,11 @@ class HistoryScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('History'),
-          bottom: const TabBar(
-            tabs: [Tab(text: 'Bills'), Tab(text: 'Payments')],
+          bottom: TabBar(
+            labelColor: Colors.white, // Always light for selected tab
+            unselectedLabelColor: Colors.white70, // Always light for unselected tab
+            indicatorColor: AppColors.secondary,
+            tabs: const [Tab(text: 'Bills'), Tab(text: 'Payments')],
           ),
         ),
         body: TabBarView(
@@ -75,5 +80,3 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 }
-
-
